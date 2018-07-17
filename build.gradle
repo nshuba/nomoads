@@ -1,0 +1,43 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'application'
+
+mainClassName = "edu.uci.nomoads.training.Main"
+version = 0.1
+
+run {
+    args = ["config.cfg"]
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ["src/main/java"]
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'src/main/java/lib')
+}
+
+task generateReleaseJavadoc(type: Javadoc) {
+    source = sourceSets.main.allJava
+    destinationDir = reporting.file("${projectDir}/docs")
+    ext.weka = file("$projectDir/src/main/java/lib/weka.jar")
+    classpath = project.sourceSets.main.compileClasspath + files(ext.weka)
+    options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PRIVATE
+}
+
+/**
+ * Use this task to create a gradle wrapper.
+ * Upload the wrapper to source control.
+ * Developers, who do not have a local gradle installation, can then still build the project using this wrapper.
+ */
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2.1'
+}
