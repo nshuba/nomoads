@@ -1,6 +1,7 @@
 # NoMoAds
-A system for predicting whether or not network packets contain a
-request for an ad.
+This is a repository for NoMoAds - a system for predicting whether or not network packets contain a
+request for an ad. For other details about the project, visit the project
+[website](http://athinagroup.eng.uci.edu/projects/nomoads/).
 
 ## Quick Start
 ### Prerequisites
@@ -11,7 +12,7 @@ request for an ad.
 
 ### Download the Sample Dataset
 * Download the NoMoAds dataset from
-[our website](http://athinagroup.eng.uci.edu/nomoads-data/).
+[our website](http://athinagroup.eng.uci.edu/projects/nomoads/data/).
 
 * Unzip the contents and place them in a folder of our choosing.
 Throughout the document we will refer to this folder as `DATA_ROOT`.
@@ -122,7 +123,8 @@ occuring strings or version numbers. You can use the default list
 `config/stop_words.txt` or create your own.
 
 ### Java Code
-In progress, coming soon!
+The Javadoc sits in the `docs` directory of the repo and is also available
+in web form [here](https://uci-networking-group.github.io/nomoads/).
 
 ### Python Scripts
 The following scripts are in `CODE_ROOT/scripts`, see the description
