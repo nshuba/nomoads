@@ -24,7 +24,10 @@ DATA_ROOT
 ```
 
 ### Download the NoMoAds Source Code
-* Download the NoMoAds source code. TODO
+* Download the NoMoAds source code from GitHub. For instance:
+```
+git clone https://github.com/UCI-Networking-Group/nomoads.git
+```
 
 * Throughout the document we will refer to the root folder of the source
 code as `CODE_ROOT`
