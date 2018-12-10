@@ -29,7 +29,7 @@ public interface DPIInterface {
      * Initializes the DPI object with the provided strings that need to be searched for
      * @param searchStrings the strings this object should search for
      */
-    void init(String[] searchStrings);
+    boolean init(String[] searchStrings);
 
     /**
      * Perform DPI on the given packet, searching for strings that were passed in

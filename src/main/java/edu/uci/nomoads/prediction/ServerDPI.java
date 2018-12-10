@@ -30,8 +30,9 @@ import java.util.ArrayList;
 class ServerDPI implements DPIInterface {
     private String[] searchStrings;
 
-    public void init(String[] searchStrings) {
+    public boolean init(String[] searchStrings) {
         this.searchStrings = searchStrings;
+        return true;
     }
 
     /**
