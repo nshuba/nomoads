@@ -3,6 +3,29 @@ This is a repository for NoMoAds - a system for predicting whether or not networ
 request for an ad. For other details about the project, visit the project
 [website](http://athinagroup.eng.uci.edu/projects/nomoads/).
 
+## Citing NoMoAds
+If you create a publication (including web pages, papers published by a
+third party, and publicly available presentations) using NoMoAds or the 
+NoMoAds dataset, please cite the 
+[corresponding paper](https://www.petsymposium.org/2018/files/papers/issue4/popets-2018-0035.pdf) 
+as follows:
+
+```
+@article{shuba2018nomoads,
+  title={{NoMoAds: Effective and Efficient Cross-App Mobile Ad-Blocking}},
+  author={Shuba, Anastasia and Markopoulou, Athina and Shafiq, Zubair},
+  journal={Proceedings on Privacy Enhancing Technologies},
+  volume={2018},
+  number={4},
+  year={2018},
+  publisher={De Gruyter Open}
+}
+```
+
+We also encourage you to provide us (<nomoads.uci@gmail.com>) with a
+link to your publication. We use this information in reports to our
+funding agencies.
+
 ## Quick Start
 ### Prerequisites
 * Python 2.7
@@ -14,7 +37,7 @@ request for an ad. For other details about the project, visit the project
 * Download the NoMoAds dataset from
 [our website](http://athinagroup.eng.uci.edu/projects/nomoads/data/).
 
-* Unzip the contents and place them in a folder of our choosing.
+* Unzip the contents and place them in a folder of your choosing.
 Throughout the document we will refer to this folder as `DATA_ROOT`.
 Your folder structure should look as follows:
 ```
@@ -157,3 +180,6 @@ for other scripts to use.
 
 `utils.py` - contains various global variables and utility methods
 used by other scripts.
+
+## Acknowledgements
+* [ReCon](https://github.com/Eyasics/recon)
