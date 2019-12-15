@@ -1,0 +1,39 @@
+{
+    "all_labels": {
+        "package_name": "ar.com.fennoma.psicotes",
+        "ats_pkg": "com.crashlytics.android",
+        "host": "m.facebook.com",
+        "domain": "facebook.com",
+        "uri": "/fe87ba03.png",
+        "method": "POST",
+        "ats": "value_ats",
+        "pii_found": "[]",
+        "list_labels": {
+            "easy_list": "value_easy_list",
+            "easy_privacy": "value_easy_privacy",
+            "moaab": "value_moaab"
+        },
+        "predicted": {
+            "general": "value_general",
+            "package_name": "value_package_name"
+        }
+    },
+    "all_labels2": {
+        "package_name": "ar.com.fennoma.psicotes",
+        "host": "m.facebook.com",
+        "domain": "facebook.com",
+        "uri": "/fe87ba03.png",
+        "method": "GET",
+        "ats": "value_ats",
+        "pii_found": "[]",
+        "list_labels": {
+            "easy_list": 2,
+            "easy_privacy": 3,
+            "moaab": 4
+        },
+        "predicted": {
+            "general": 0,
+            "package_name": 1
+        }
+    }
+}

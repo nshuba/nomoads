@@ -22,7 +22,7 @@ import org.json.simple.JSONObject;
 /**
  * Trains on URL + Headers
  */
-class UrlHeadersAdsTrainer extends UrlPathAdsTrainer {
+class UrlHeadersAdsTrainer extends UrlAdsTrainer {
 
     public UrlHeadersAdsTrainer(ServerUtils serverUtils) {
         super(serverUtils);
@@ -33,9 +33,13 @@ class UrlHeadersAdsTrainer extends UrlPathAdsTrainer {
 
         //System.out.println("getLine: " + UrlHeadersAdsTrainer.class.getSimpleName());
 
-        // Note: host is part of headers
         JSONObject headers = (JSONObject) packet.get(JsonKeyDef.F_KEY_HEADERS);
         for (Object h : headers.keySet()) {
+            String hdrKey = h.toString().toLowerCase();
+            // Don't double-count host
+            if (hdrKey.equals(JsonKeyDef.F_KEY_HOST))
+                continue;
+
             line += h + ": " + headers.get(h) + "\r\n";
         }
 

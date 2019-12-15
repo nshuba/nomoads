@@ -23,6 +23,7 @@ repositories {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'src/main/java/lib')
+    testCompile 'junit:junit:4.12'
 }
 
 task generateReleaseJavadoc(type: Javadoc) {
@@ -39,5 +40,5 @@ task generateReleaseJavadoc(type: Javadoc) {
  * Developers, who do not have a local gradle installation, can then still build the project using this wrapper.
  */
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.2.1'
+    gradleVersion = '3.0.0'
 }

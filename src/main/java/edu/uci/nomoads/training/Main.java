@@ -24,9 +24,8 @@ public class Main {
 		// Load configurations
         String configFile = args[0];
 		Config config = new Config(configFile);
-
-		// Start training based on the configuration
-		config.getSelectedTrainer().train();
+		DataSplitter dataSplitter = new DataSplitter(config);
+		dataSplitter.runExperiment();
 	}
 
 }

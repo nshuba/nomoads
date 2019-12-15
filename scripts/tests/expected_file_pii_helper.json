@@ -1,0 +1,44 @@
+{
+    "no_pii": {
+        "uri": "some_url",
+        "headers": {
+            "Referer": "http://stream.nbcsports.com/data/mobile/www/nbcsports/index.html",
+            "Accept": "image/webp,image/*,*/*;q=0.8"
+        }
+    }, 
+    "pii_in_header": {
+        "uri": "some_url",
+        "headers": {
+            "Referer": "http://stream.nbcsports.com/plain=REDACTED_TEST_ID",
+            "CustomHeader": "md5=REDACTED_TEST_ID"
+        }
+    },
+    "pii_in_url": {
+        "uri": "some_url?plain_id=REDACTED_ANOTHER_ID",
+        "headers": {
+            "Referer": "http://stream.nbcsports.com/data/mobile/www/nbcsports/index.html",
+            "Accept": "image/webp,image/*,*/*;q=0.8"
+        }
+    },
+    "pii_in_header_and_url": {
+        "uri": "some_url?plain_id=REDACTED_TEST_ID",
+        "headers": {
+            "Referer": "http://stream.nbcsports.com?sha1=REDACTED_ANOTHER_ID",
+            "Accept": "image/webp,image/*,*/*;q=0.8"
+        }
+    },
+    "location_in_header_and_url": {
+        "uri": "some_url?location=REDACTED_LOCATION,REDACTED_LOCATION",
+        "headers": {
+            "Referer": "http://stream.nbcsports.com?loc2=REDACTED_LOCATION;REDACTED_LOCATION",
+            "Accept": "image/webp,image/*,*/*;q=0.8"
+        }
+    },
+    "location_and_other_pii": {
+        "uri": "some_url?location=REDACTED_LOCATION,REDACTED_LOCATION",
+        "headers": {
+            "Accept": "image/webp,image/*,*/*;q=0.8",
+            "CustomHeader": "REDACTED_ANOTHER_ID"
+        }
+    }
+}

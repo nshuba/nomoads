@@ -20,7 +20,7 @@ package edu.uci.nomoads.training;
 import org.json.simple.JSONObject;
 
 /**
- * Trains on URLs
+ * Trains on URLs: host and the path component
  */
 class UrlAdsTrainer extends UrlPathAdsTrainer {
 
@@ -29,7 +29,7 @@ class UrlAdsTrainer extends UrlPathAdsTrainer {
     }
 
     public String getLine(JSONObject packet) {
-        String line = super.getLine(packet); // gets URI
+        String line = super.getLine(packet); // gets URL path
         line += "host: " + packet.get(JsonKeyDef.F_KEY_HOST) + "\r\n";
 
         return line;

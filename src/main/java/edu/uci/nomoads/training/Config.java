@@ -37,27 +37,28 @@ class Config {
     /** Specifies which of the child {@link Trainer} classes to use for training. */
     private static final String trainerClass = "trainerClass";
 
-    /**
-     * The type of classifier. Typically set to 'package_responsible.' It can also be set to
-     * 'domain' or just 'package_name.' This parameter is useful when training per-domain or
-     * per-app classifiers. */
-    private static final String classifierType = "classifierType";
+    /** How to split data for training classifiers. Refer to the README for details about this
+     * setting. */
+    private static final String dataSplit = "dataSplit";
 
-    /** Specifies the training bin size. */
-    private static final String binSize = "binSize";
+    /** Configuration for whether or not to do cross validation, or just build a classifier */
+    private static final String crossValidation = "crossValidation";
 
     /** The name of the file containing stop words. */
     private static final String stopwordConfig  = "stopwordConfig";
 
+    /** Name of config key specifying the JSON label key in data files */
+    private static final String labelConfig = "label";
+
     /** Configurations that are expected to be found in the config file. */
     private final Set<String> expectedConfigs = new HashSet<>(Arrays.asList(dataRootDir,
-            trainerClass, classifierType, binSize, stopwordConfig));
+            trainerClass, dataSplit, crossValidation, stopwordConfig, labelConfig));
 
     /** The {@link Trainer} selected by the {@link #trainerClass} configuration */
     private final Trainer selectedTrainer;
 
-    /** The size of the bin as selected by {@link #binSize} configuration */
-    private final int selectedBinSize;
+    /** Whether or not to do cross validation, or just build a classifier */
+    private final boolean crossValEnabled;
 
     /** Map for keeping selected configuration values. */
     private final Map<String, String> configs;
@@ -71,10 +72,20 @@ class Config {
         ConfigReader reader = new ConfigReader();
         reader.readFile(CONFIG_DIR + configFile);
 
+        // Sanity checks
+        // Make sure data split type is supported
+        String selectedDataSplit = configs.get(dataSplit);
+        if (!DataSplitter.SUPPORTED_TYPES.contains(selectedDataSplit)) {
+            System.err.println("Invalid " + dataSplit + " parameter: " + selectedDataSplit + ". " +
+                    "Exiting.");
+            System.exit(-1);
+        }
+
+        // Make sure cross-validation is a boolean
+        crossValEnabled = Boolean.parseBoolean(configs.get(crossValidation));
+
         // Prepare a trainer object
         String selectedClass = configs.get(trainerClass);
-        ServerUtils serverUtils = new ServerUtils(Config.this);
-
         Trainer tempTrainer = null; // use a temporary variable to make compiler happy
         try {
             // prepend selected class name with package name
@@ -83,34 +94,26 @@ class Config {
 
             Class trainerClass = Class.forName(fullClassName);
             Constructor constructor = trainerClass.getConstructor(ServerUtils.class);
-            tempTrainer = (Trainer) constructor.newInstance(serverUtils);
+            tempTrainer = (Trainer) constructor.newInstance(ServerUtils.getInstance(Config.this));
         } catch (Exception e) {
             System.err.println("Invalid " + trainerClass + " parameter: " + selectedClass + ". " +
                     "Exiting.");
             System.exit(-1);
         }
         selectedTrainer = tempTrainer;
-
-        // Read in the bin size
-        int tempBin = -1; // use a temporary variable to make compiler happy
-        try {
-            tempBin = Integer.parseInt(configs.get(binSize));
-        } catch (NumberFormatException e) {
-            System.err.println("Invalid " + binSize + " '" + configs.get(binSize) + "' - could " +
-                    "not parse as a integer. Exiting.");
-            System.exit(-1);
-        }
-        selectedBinSize = tempBin;
     }
+
+    /** @return the {@link #labelConfig} configuration */
+    String getLabel() { return configs.get(labelConfig); }
 
     /** @return the root directory specified in the config file (see {@link #dataRootDir}) */
     String getRootConfig() { return configs.get(dataRootDir) + "/"; }
 
-    /** @return the {@link #classifierType} configuration */
-    String getClassifierType() { return configs.get(classifierType); }
+    /** @return the {@link #dataSplit} configuration */
+    String getDataSplit() { return configs.get(dataSplit); }
 
-    /** @return size of the bin as selected by {@link #binSize} configuration */
-    int getBinSize() { return selectedBinSize; }
+    /** @return whether or not to do cross validation, or just build a classifier */
+    boolean isCrossValidationEnabled() { return crossValEnabled; }
 
     /** @return the {@link #stopwordConfig} configuration */
     String getStopwordConfig() { return configs.get(stopwordConfig); }

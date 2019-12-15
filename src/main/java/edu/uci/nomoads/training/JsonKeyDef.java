@@ -30,7 +30,8 @@ class JsonKeyDef {
 	public final static String F_KEY_URI = "uri";
 	public final static String F_KEY_HOST = "host";
 	public final static String F_KEY_POST_BODY = "post_body";
-	public final static String F_KEY_REFERRER = "referrer";
+	public final static String F_KEY_REFERRER = "referer";
+	public final static String F_KEY_CONTENT_TYPE = "content-type";
 	public final static String F_KEY_HEADERS = "headers";
 	public final static String F_KEY_PLATFORM = "platform";
 	public final static String TK_FLAG = "tk_flag";

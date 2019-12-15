@@ -44,12 +44,6 @@ abstract class Trainer {
 
 	protected String jsonKeyLabel;
 
-	/** Whether or not to do packet-based cross-validation (using Weka internal methods) */
-    protected boolean enableCrossValidation = false;
-
-    /** The number of packet-based cross-validation folds to do */
-	protected static final int NUM_CROSS_FOLDS = 5;
-
     protected final int DEFAULT_THETA = 2;
 
 	/** Keeps tree labels belonging to each domainOS. It's filled out during training
@@ -62,221 +56,13 @@ abstract class Trainer {
 
     protected final ServerUtils mServerUtils;
 
-	private JSONParser parser;
-
-	private String currentSplit = "full_set";
-
     public Trainer(ServerUtils serverUtils) {
         mServerUtils = serverUtils;
         jsonDomainOSTreeLabels = new JSONObject();
-        jsonKeyLabel = JsonKeyDef.F_KEY_AD_LABEL;
+        jsonKeyLabel = serverUtils.label;
 
 		pkgNames = new HashSet<>();
 		piisSet = new HashSet<>();
-	}
-
-	/**
-	 * Splits data into bins and picks one of the bins to test on. Procedure is repeated until all
-	 * 'domains' had a chance to be tested
-	 */
-	public void train() {
-		parser = new JSONParser();
-
-		try {
-			String infoFilePath = mServerUtils.getTrainingIndex();
-			Object obj = parser.parse(new FileReader(infoFilePath));
-			JSONObject domain_os_reports = (JSONObject) obj;
-
-			Set<Object> allFilesSet = domain_os_reports.keySet();
-
-			// Remove the general classifier. Focus is on per-app here:
-			allFilesSet.remove("general.json");
-			Object[] fileNamesArr = allFilesSet.toArray();
-
-			int binSize = mServerUtils.getBinSize();
-			if (binSize >= allFilesSet.size()) {
-				enableCrossValidation = true;
-				System.out.println("Using all training files...");
-
-				// Convert JSON objects into Strings for file names
-				Set<String> trainSet = new HashSet<>(binSize);
-				for(Object fileObj : fileNamesArr)
-					trainSet.add((String) fileObj);
-
-				runSplit(domain_os_reports, new HashSet<String>(0), trainSet);
-				return;
-			}
-
-			// Otherwise we are doing more customized cross-validation:
-			int remainder = allFilesSet.size() % binSize;
-			if (remainder > 0) {
-				System.err.println("Please pick a bin size that goes evenly into the number of " +
-						"files (" + allFilesSet.size() + "). Uneven cross-validation is " +
-						"unsupported. Exiting.");
-				System.exit(-1);
-			}
-
-			int numBins = allFilesSet.size()/binSize;
-			ArrayList<Set<String>> bins = new ArrayList<>(numBins);
-
-			// Randomly select training files
-			Random r = new Random();
-			Set<String> selectedSet = new HashSet<>(allFilesSet.size()); // keep track of selected
-			for (int i = 0; i < numBins; i++) {
-				// Prepare bin
-				Set<String> bin = new HashSet<>(binSize);
-
-				int j = 0;
-				while(j < binSize) {
-					String selectedFile = (String) fileNamesArr[r.nextInt(fileNamesArr.length)];
-
-					if (selectedSet.contains(selectedFile))
-						continue; // Until we find one that has not been selected already
-
-					selectedSet.add(selectedFile); // keep track
-
-					// Fill out each bin
-					bin.add(selectedFile);
-					j++;
-				}
-
-				bins.add(bin);
-			}
-
-			// Go through all bins, selecting each one to be in the test set once
-			for (int i = 0; i < numBins; i++) {
-				Set<String> testSet = bins.get(i);
-				Set<String> trainSet = new HashSet<>((numBins - 1) * binSize);
-				for (int j = 0; j < numBins; j++) {
-					if (j == i)
-						continue; // Don't add the test set
-
-					trainSet.addAll(bins.get(j));
-				}
-
-				currentSplit = "split" + i;
-				runSplit(domain_os_reports, testSet, trainSet);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void runSplit(JSONObject jsonIdx, Set<String> testSet, Set<String> trainSet)
-			throws Exception {
-
-		Info trainingInfo = new Info();
-		trainingInfo.domainOS = currentSplit;
-		System.out.println("\n----------------------\n");
-		System.out.println("Training files " + trainSet.size() + ":");
-		JSONObject merged = new JSONObject();
-		for (String selectedFile : trainSet) {
-			JSONObject info = (JSONObject) jsonIdx.get(selectedFile);
-			Info inf = ServerUtils.approveFile(info, mServerUtils.getClassifierType());
-			if (inf == null) {
-				System.out.println("WARNING! Null info for " + selectedFile + ". Stopping.");
-				return;
-			}
-
-			trainingInfo.initNumPos += inf.initNumPos;
-			trainingInfo.initNumNeg += inf.initNumNeg;
-			trainingInfo.initNumTotal += inf.initNumTotal;
-
-			JSONObject trFlows = (JSONObject) parser.parse(new FileReader(mServerUtils
-					.getTrainingDir() + selectedFile));
-			for (Object k : trFlows.keySet()) {
-				JSONObject entry = (JSONObject) trFlows.get(k);
-				merged.put(k, entry);
-			}
-
-			System.out.println(selectedFile);
-		}
-
-		MetaEvaluationMeasures mem = new MetaEvaluationMeasures(trainingInfo);
-		Instances trInstances = trainOneDomain(merged, mem);
-		updateTreeLabels();
-
-		JSONObject evalResults = new JSONObject();
-		evalResults.put("cross-val", mem.getJSONobj());
-
-		// Now evaluate on test set
-		AdsPredictor adsPredictor = new AdsPredictor(mServerUtils);
-		Classifier classifier = (Classifier) adsPredictor.getClassifierModel(currentSplit);
-
-		mem.doEvaluation(classifier, trInstances, 0);
-		evalResults.put("testing", mem.getJSONobj());
-
-		Instances struct = adsPredictor.getClassifierInstances(currentSplit);
-		Instances fInstances = new Instances(struct);
-		fInstances.setClassIndex(fInstances.numAttributes() - 1);
-
-		System.out.println("testing: " + testSet.size());
-		for (String selectedFile : testSet) {
-			System.out.println(selectedFile);
-
-			JSONObject info = (JSONObject) jsonIdx.get(selectedFile);
-			Info inf = ServerUtils.approveFile(info, mServerUtils.getClassifierType());
-			if (inf == null) {
-				System.out.println("WARNING! Null info for " + selectedFile + ". Stopping.");
-				return;
-			}
-
-			Info testingInfo = new Info();
-			testingInfo.initNumPos = inf.initNumPos;
-			testingInfo.initNumNeg = inf.initNumNeg;
-			testingInfo.initNumTotal = inf.initNumTotal;
-
-			Instances testingInstances = new Instances(struct);
-			testingInstances.setClassIndex(testingInstances.numAttributes() - 1);
-
-			JSONObject testFlows = (JSONObject) parser.parse(new FileReader(mServerUtils
-					.getTrainingDir() + selectedFile));
-			JSONObject testResults = new JSONObject();
-			for (Object k : testFlows.keySet()) {
-				JSONObject packet = (JSONObject) testFlows.get(k);
-				Instance instance = convertObjectToInstance(packet, adsPredictor, currentSplit);
-				testingInstances.add(instance);
-				fInstances.add(instance);
-				instance = testingInstances.get(testingInstances.size() - 1);
-
-				double predicted = classifier.classifyInstance(instance);
-
-				JSONObject dataPoint = new JSONObject();
-				dataPoint.put("ad", packet.get(jsonKeyLabel));
-				dataPoint.put("predicted", (int) predicted);
-				dataPoint.put(mServerUtils.getClassifierType(), packet.get(mServerUtils.getClassifierType()));
-				testResults.put(k, dataPoint);
-			}
-			new File(mServerUtils.getResultsDir() + currentSplit).mkdirs();
-			ServerUtils.writeToFile(mServerUtils.getResultsDir() + currentSplit +
-					"/" + selectedFile, testResults.toJSONString());
-
-			MetaEvaluationMeasures teMem = new MetaEvaluationMeasures(testingInfo);
-			teMem.doEvaluation(classifier, testingInstances, 0);
-			evalResults.put(inf.domain, teMem.getJSONobj());
-
-
-		}
-		saveArff("compare", fInstances);
-
-		DateFormat dateFormat = new SimpleDateFormat("HH_mm_ss");
-		ServerUtils.appendLineToFile(mServerUtils.getLogDir() + "eval_" +
-				dateFormat.format(new Date()) + ".json", evalResults.toJSONString());
-		System.out.println("----------------------\n");
-	}
-
-	protected void updateTreeLabels() {
-		// Delete previous tree labels file
-		File treeLabels = new File(mServerUtils.getTreeLabelsFile());
-		treeLabels.delete();
-
-		// Overwrite with new labels
-		ServerUtils.appendLineToFile(mServerUtils.getTreeLabelsFile(), jsonDomainOSTreeLabels.toString());
-
-		// Save another copy of the tree so that future invocations of the above code don't
-		// overwrite
-		String treeCopy = mServerUtils.getExperimentsDir() + currentSplit + "_treeLabels.json";
-		ServerUtils.writeToFile(treeCopy, jsonDomainOSTreeLabels.toString());
 	}
 
 	/**
@@ -320,14 +106,17 @@ abstract class Trainer {
 		trainingData.mem.numInstance = mem.info.initNumTotal;
 
 		Instances trainingSet = null;
-		if (trainingData.mem.numTotal >= 2 && trainingData.mem.numPositive >= 1) {
+		//if (trainingData.mem.numTotal >= 2 && trainingData.mem.numPositive >= 1) {
+  //      if (trainingData.mem.numTotal >= NUM_CROSS_FOLDS) {
 			populateTrainingMatrix(trFlows, trainingData);
 			//if (trainingData.mem.numOfPossibleFeatures > 5)
 			trainingSet = populateArff(mem.info, trainingData, thresholdFrequency);
 			//else
 			//	System.out.println("WARNING: Not enough features! Classifier:" + mem.info.domainOS);
-		} else
-			System.out.println("WARNING: Not enough data! Classifier:" + mem.info.domainOS);
+//		} else {
+//            System.out.println("WARNING: Not enough data! Classifier:" + mem.info.domainOS);
+//            trainingData.mem.error = "not enough data";
+//        }
 
 		trainingData.trainingInstances = trainingSet;
 
@@ -408,8 +197,10 @@ abstract class Trainer {
 			trainingData.adLabels.add(ServerUtils.getIntFromJSONObject(flow, jsonKeyLabel));
 
 			// Keep track of all possible PII for later use as a feature
-			for (Object piiObj : labels) {
-				piisSet.add((String) piiObj);
+			if (labels != null){
+				for (Object piiObj : labels) {
+					piisSet.add((String) piiObj);
+				}
 			}
 		}
 		trainingData.wordCount = word_count;
@@ -444,7 +235,7 @@ abstract class Trainer {
 		classVals.add("" + LABEL_NEGATIVE);
 		classVals.add("" + LABEL_POSITIVE);
 
-        attributes.add(new Attribute("AdLabel", classVals));
+        attributes.add(new Attribute(jsonKeyLabel, classVals));
     }
 
 	/**
@@ -464,9 +255,9 @@ abstract class Trainer {
 			Classifier classifier, Instances trainingSet, String domainOS,
 			MetaEvaluationMeasures mem) {
 		try {
-			if (enableCrossValidation) {
+/*			if (enableCrossValidation) {
 				mem.doEvaluation(classifier, trainingSet, NUM_CROSS_FOLDS);
-			}
+			}*/
 
 			long t1 = System.currentTimeMillis();
 			classifier.buildClassifier(trainingSet);
@@ -498,6 +289,10 @@ abstract class Trainer {
 			SerializationHelper.write(mServerUtils.getModelDir() + domainOS + "-"
 					+ classifier.getClass().toString().substring(6) + ".model",
 					classifier);
+
+            // Save tree labels
+            ServerUtils.overwriteFile(mServerUtils.getTreeLabelsFile(),
+                    jsonDomainOSTreeLabels.toJSONString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -521,15 +316,10 @@ abstract class Trainer {
 		tree = tree.replace("label=\"\n", "label=\"\\n");
 
 		// Delete previous .dot file and update
-		String dotFilePath = mServerUtils.getExperimentsDir() + domainOS + "_tree.dot";
-		ServerUtils.writeToFile(dotFilePath, tree);
+		String dotFilePath = mServerUtils.getTreeDotDir() + domainOS + "_tree.dot";
+		ServerUtils.overwriteFile(dotFilePath, tree);
 
-        // Check if there is already a saved tree (perhaps for another label)
-        Map<String, String> treeLabels = (HashMap<String, String>)
-                jsonDomainOSTreeLabels.get(domainOS);
-		if (treeLabels == null)
-			treeLabels = new HashMap<>();
-
+        Map<String, String> treeLabels = new HashMap<>();
 		parseTree(treeLabels, tree, pii);
 
 		// Save tree labels

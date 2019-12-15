@@ -30,6 +30,9 @@ import weka.core.Instances;
  * Intermediate and final results during training a classifier for the domain,os.
  * */
 class MetaEvaluationMeasures {
+    /** If there was an error during training, this string gets set with an error message */
+    public String error = null;
+
     public double falsePositiveRate = -1;
     public double falseNegativeRate = -1;
     public double trainingTime = -1;
@@ -112,6 +115,7 @@ class MetaEvaluationMeasures {
     @SuppressWarnings("unchecked")
     public JSONObject getJSONobj() {
         JSONObject obj = new JSONObject();
+        obj.put("error", error);
         obj.put("accuracy", this.accuracy);
         obj.put("fpr", falsePositiveRate);
         obj.put("fnr", falseNegativeRate);

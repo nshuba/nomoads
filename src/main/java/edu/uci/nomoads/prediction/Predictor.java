@@ -64,7 +64,7 @@ public abstract class Predictor {
      * @param knownPII set of PII that are known in advance (see {@link #knownPII})
      */
     public Predictor(String className, Util util, DPIInterface dpiInterface, Collection<String>
-            knownPII) {
+            knownPII) throws Exception {
         this.dpiInterface = dpiInterface;
 
         domainOSModel = new HashMap<String, Object>();
@@ -72,7 +72,7 @@ public abstract class Predictor {
         domainOSStruct = new HashMap<String, Instances>();
         treeLabels = new HashSet<>();
 
-        try {
+ //       try {
             File modelFolder = new File(util.getModelDir());
             File[] models = modelFolder.listFiles();
             if (models == null)
@@ -114,7 +114,7 @@ public abstract class Predictor {
                     for (Object k : treeLabels.keySet()) {
                         this.treeLabels.add(treeLabels.get(k) + "");
                     }
-                    System.out.println("number of loaded tree nodes: " + treeLabels.size());
+                    //System.out.println("number of loaded tree nodes: " + treeLabels.size());
                 }
 
                 // Load features
@@ -124,10 +124,11 @@ public abstract class Predictor {
                 }
                 classifierFeatures.put(domainOS, fi);
             }
-        } catch (Exception e) {
+/*        } catch (Exception e) {
             // TODO: 239
             e.printStackTrace();
-        }
+            return null;
+        }*/
 
         // Prepare strings to search for
         addKnownPII(knownPII);

@@ -33,7 +33,7 @@ import weka.core.SparseInstance;
  */
 public class AdsPredictor extends Predictor {
 
-    public AdsPredictor(Util util) {
+    public AdsPredictor(Util util) throws Exception {
         // Passing empty list for known PII here since on the server side, the PII are scrubbed and
         // are separate labels in JSON objects
         super(J48.class.toString().substring(6), util, new ServerDPI(), new ArrayList<String>(0));

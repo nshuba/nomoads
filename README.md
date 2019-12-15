@@ -1,7 +1,30 @@
 # NoMoAds
-This is a repository for NoMoAds - a system for predicting whether or not network packets contain a
-request for an ad. For other details about the project, visit the project
-[website](http://athinagroup.eng.uci.edu/projects/nomoads/).
+This is a repository for NoMoAds, with NoMoATS extensions.
+NoMoAds is a system for predicting whether or not network packets contain
+advertising or tracking requests.
+For details about the two projects, please visit
+[our website](http://athinagroup.eng.uci.edu/projects/nomoads/).
+
+Below is an outline of this document:
+* [Quick Start](#quick-start)
+* [Detailed Overview](#detailed-overview)
+* [Citing NoMoAds](#citing-nomoads)
+* [Acknowledgements](#acknowledgements)
+
+Below is a table of contents of this document:
+* [Citing NoMoAds](#citing-nomoads)
+* [Quick Start](#quick-start)
+    * [Prerequisites](#prerequisites)
+    * [Download the Sample Dataset](#download-the-sample-dataset)
+    * [Download the NoMoAds Source Code](#download-the-nomoads-source-code)
+    * [Taking NoMoAds for a Test Run](#taking-nomoads-for-a-test-run)
+    * [Extracting Classification Results](#extracting-classification-results)
+* [Detailed Overview](#detailed-overview)
+    * [Configuration Settings](#configuration-settings)
+    * [Java Code](#java-code)
+    * [Python Scripts](#python-scripts)
+    * [Exporting NoMoAds as an Android Library](#exporting-nomoads-as-an-android-library)
+* [Acknowledgements](#acknowledgements)
 
 ## Citing NoMoAds
 If you create a publication (including web pages, papers published by a
@@ -27,10 +50,37 @@ link to your publication. We use this information in reports to our
 funding agencies.
 
 ## Quick Start
+Below you will find instructions to get you started quickly. We also provide a VM
+that has all the prerequisites installed and contains a small subset of our dataset to get you
+started even quicker. If you would like to use the VM, go to the
+[Using the Provided VM](#using-the-provided-vm) section. Otherwise, start at the
+[Prerequisites](#prerequisites) section.
+
+
+### Using the Provided VM
+<!---
+TODO: add link to VM
+-->
+```
+$ cd ~/nomoads
+$ python scripts/data_prep/prepare_training_data.py config.cfg
+$ ./gradlew build
+$ ./gradlew run
+```
+
+The results are ready to view! Skip to the [Viewing Results](#viewing-results) section for
+instructions on how to view them. Note that in the `DATA_ROOT` directory is
+`/home/nomoats/data_root` on the VM.
+
 ### Prerequisites
-* Python 2.7
-    - tldextract module (to install run: 'pip install tldextract')
-* JRE 1.8
+* Python 2.7 and pip
+    - `$ sudo apt-get install python`
+    - `$ sudo apt-get install python-pip`
+* tldextract module
+    - `$ pip install tldextract`
+* Java 8
+    - `$ sudo apt-get install openjdk-8-jre`
+    - `$ sudo apt-get install openjdk-8-jdk`
 * **Optional**: IntelliJ or Android Studio
 
 ### Download the Sample Dataset
@@ -43,14 +93,13 @@ Your folder structure should look as follows:
 ```
 DATA_ROOT
     --> raw_data/
-    --> apps_sorted.csv
 ```
 
 ### Download the NoMoAds Source Code
 * Download the NoMoAds source code from GitHub. For instance:
-```
-git clone https://github.com/UCI-Networking-Group/nomoads.git
-```
+  ```
+  git clone https://github.com/UCI-Networking-Group/nomoads.git
+  ```
 
 * Throughout the document we will refer to the root folder of the source
 code as `CODE_ROOT`
@@ -59,55 +108,73 @@ code as `CODE_ROOT`
 * NoMoAds has various modes of operation that are controlled by a
 configuration file. A sample configuration file is available at
 `CODE_ROOT/config/config.cfg`. Open the sample configuration file in
-your favoriate editor and change the `dataRootDir` option to
+your favorite editor and change the `dataRootDir` option to
 point to your `DATA_ROOT`. For instance, if your `DATA_ROOT` is located
 in `/home/user_a/DATA_ROOT`, the config file should contain the
 following:
-```
-dataRootDir=/home/user_a/DATA_ROOT
-```
+  ```
+  dataRootDir=/home/user_a/DATA_ROOT
+  ```
 
 * Note that if you are on Windows, you can specify the path as
 `C:\\Users\\user_a\\DATA_ROOT`
 
 * Now prepare the training data:
-```
-cd CODE_ROOT/scripts
-./prepare_training_data.py config.cfg
-```
+  ```
+  cd CODE_ROOT/scripts
+  ./prepare_training_data.py config.cfg
+  ```
 
 * The above command will organize the data and will keep it in
-`DATA_ROOT/tr_data_per_package_responsible`. Note that in the above
+`DATA_ROOT/tr_data_per_package_name`. Note that in the above
 command you can pass a different configuration file, so long as it is
 kept in `CODE_ROOT/config/`.
 
 * Now train a classifier and evaluate it:
-```
-cd CODE_ROOT
-./gradlew build
-./gradlew run
-```
+  ```
+  cd CODE_ROOT
+  ./gradlew build
+  ./gradlew run
+  ```
 
-### Extracting Classification Results
+### Viewing Results
 * Since the sample configuration file sets
-`trainerClass=NetworkLayerTrainer`, the classifiers, logs, and the
-results will be saved in `DATA_ROOT/NetworkLayerTrainer`.
+`trainerClass=UrlHeadersAdsTrainer`, the results will be saved in the
+`DATA_ROOT/UrlHeadersAdsTrainer` folder, and will contain the following items:
+    - arff/ - contains `.arff` files used by the Weka library to store data points
+    - logs/ - contains various ML metrics provided by Weka during training
+    - model/ - contains the decision tree (DT) models
+    - results/ - contains a copy of the training dataset with prediction results
+    - tree_dot_files/ - contains `.dot` files representing the DTs trained,
+    used for visualization
+    - treeLabels.json - a JSON represnetation of the trees, used for
+    various processing during the training
 
-* In the sample configuration file, the `binSize` is set to a number
-equal to the number of apps in our dataset. This forces NoMoAds to do
-a 5-fold packet-based cross-validation. The results of this
-cross-validation are saved in
-`DATA_ROOT/NetworkLayerTrainer/logs/eval_TIMESTAMP.json`.
+* Note that all the JSON files are saved in compressed format. For easier viewing,
+you can use the `json_pretty_print.py` script to uncompress a file. For example:
+  ```
+  $ cd CODE_ROOT/
+  $ python scripts/json_pretty_print.py DATA_ROOT/UrlHeadersAdsTrainer/treeLabels.json
+  ```
 
-* For a more readable format run the following:
-```
-cd CODE_ROOT/
-./scripts/json_pretty_print.py DATA_ROOT/NetworkLayerTrainer/logs/eval_TIMESTAMP.json
-```
+* To evaluate how well the classifiers did, you can use the following script:
+  ```
+  $ cd CODE_ROOT/
+  $ python scripts/ml_anal/evaluate_results.py config.cfg
+  ```
+  The script will print out various ML metrics (F1, accuracy, etc.) on a per-classifier
+  bases (per-app in our case) and will also calcualte and print the averages along with
+  the standard deviation. The results will also be saved to
+  `DATA_ROOT/UrlHeadersAdsTrainer/results_split.csv`
 
-* Now you can easily read the results in `eval_TIMESTAMP.json`!
+<!---
+TODO: add labeling with lists + conversion of results to CSV for SQL
+-->
 
 ## Detailed Overview
+<!---
+TODO: update these docs
+-->
 If you wish to use NoMoAds for more complex experiments and/or to expand
 its capabilities, follow the references below as needed.
 
@@ -119,29 +186,6 @@ default settings, but if you wish to change them, follow the guide below.
 
 `trainerClass` - specifies which Trainer class to use. Must be the name
 of one of the Trainer class children (e.g. `UrlHeadersPiiAdsTrainer`)
-
-`classifierType` - specifies how to break the training data. Must be one
-of the following:
-  * package_responsible - split based on the package responsible for
-  fetching the ad.
-  * package_name - split based on the package responsible for the HTTP
-  connection that fetched the ad. Note that this is not always the same
-  as the 'package_responsible.' Sometimes apps use Google apps to fetch
-  ads for themselves.
-  * domain - split based on the destination domain.
-
-`binSize` - specifies the bin size for per-app (or per-domain)
-cross-validation.
-  * *App(Domain)-Based Cross-Validation*: If there is a total of 50 apps
-(or domains), and you set the binSize to 5, then the data will be split
-into 10 bins, each containing 5, randomly selected apps (or domains).
-Training will be done on 9 bins, and
-testing on the remaining bin. The procedure will be
-repeated until all bins were tested once.
-  * *Packet-Based Cross-Validation*:
-  If you set the binSize to be equal to or higher than the number of
-  apps/domains, then packet-based cross-validation will be performed
-  instead.
 
 `stopwordConfig` - specifies were to load "stop words" from. Stop words
 are words that are not to be used as features. For instance, frequently
@@ -159,9 +203,8 @@ in each file for more details on how to use them:
 #### Main Scripts
 
 `evaluate_results.py` - used to calculate various ML metrics from the
-`DATA_ROOT/<Trainer>/results` folder. See the
-[Configuration Settings](#configuration-settings) for details on when
-this script should be used.
+`DATA_ROOT/<Trainer>/results` folder (as discussed in
+[Viewing Results](#viewing-results)).
 
 `prepare_training_data.py` - used to prepare the training data (as
 discussed in
@@ -180,6 +223,44 @@ for other scripts to use.
 
 `utils.py` - contains various global variables and utility methods
 used by other scripts.
+
+## Citing NoMoAds
+If you create a publication (including web pages, papers published by a
+third party, and publicly available presentations) using NoMoAds or the
+NoMoAds dataset, please cite the
+[corresponding paper](https://www.petsymposium.org/2018/files/papers/issue4/popets-2018-0035.pdf)
+as follows:
+
+```
+@article{shuba2018nomoads,
+  title={{NoMoAds: Effective and Efficient Cross-App Mobile Ad-Blocking}},
+  author={Shuba, Anastasia and Markopoulou, Athina and Shafiq, Zubair},
+  journal={Proceedings on Privacy Enhancing Technologies},
+  volume={2018},
+  number={4},
+  year={2018},
+  publisher={De Gruyter Open}
+}
+```
+
+If you used the NoMoATS dataset, please cite the corresponding paper
+as follows:
+
+```
+@article{shuba2020nomoats,
+  title={{NoMoATS: Towards Automatic Detection of Mobile Tracking}},
+  author={Shuba, Anastasia and Markopoulou, Athina},
+  journal={Proceedings on Privacy Enhancing Technologies},
+  volume={2020},
+  number={2},
+  year={2020},
+  publisher={De Gruyter Open}
+}
+```
+
+We also encourage you to provide us (<nomoads.uci@gmail.com>) with a
+link to your publication. We use this information in reports to our
+funding agencies.
 
 ## Acknowledgements
 * [ReCon](https://github.com/Eyasics/recon)

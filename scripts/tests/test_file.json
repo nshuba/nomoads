@@ -1,0 +1,48 @@
+{
+    "no_host": {
+        "dst_ip": "107.180.46.246", 
+        "dst_port": 80,
+        "package_name": "ar.com.fennoma.psicotes", 
+        "ts": "1550806319.123222000"
+    }, 
+    "host_only": {
+        "dst_ip": "107.180.46.246", 
+        "dst_port": 80, 
+        "host": "example.com", 
+        "package_name": "ar.com.fennoma.psicotes", 
+        "ts": "1550806319.123222000"
+    }, 
+    "everything": {
+        "dst_ip": "23.23.209.149", 
+        "dst_port": 443, 
+        "headers": {
+            "accept-encoding": "gzip", 
+            "connection": "Keep-Alive", 
+            "content-length": "1315", 
+            "content-type": "multipart/form-data; boundary=00content0boundary00", 
+            "host": "e.crashlytics.com", 
+            "user-agent": "Crashlytics Android SDK/1.3.12.dev", 
+            "x-crashlytics-api-client-type": "android", 
+            "x-crashlytics-api-client-version": "1.3.12.dev", 
+            "x-crashlytics-api-key": "472b2a9788618403d2762ffb5a695d80820fe148", 
+            "x-crashlytics-developer-token": "470fa2b4ae81cd56ecbcda9735803434cec591fa"
+        },
+        "host": "example.com",
+        "method": "POST", 
+        "package_name": "ar.com.fennoma.psicotes", 
+        "ts": "1550806414.941251000", 
+        "uri": "/spi/v2/events"
+    },
+    "third_party_block": {
+        "dst_ip": "23.23.209.149",
+        "dst_port": 443,
+        "headers": {
+            "referer": "example.com"
+        },
+        "host": "e.crashlytics.com",
+        "method": "GET",
+        "package_name": "ar.com.fennoma.psicotes",
+        "ts": "1550806414.941251000",
+        "uri": "/spi/v2/events"
+    }
+}

@@ -34,13 +34,29 @@ import weka.core.Instances;
 import weka.core.SparseInstance;
 
 /**
- * Trains based on destination domain
+ * Trains based on destination domain (TLD + 1)
  */
 class DomainAdsTrainer extends Trainer {
 
     private ArrayList<String> domainsList;
 
-    public DomainAdsTrainer(ServerUtils serverUtils) { super(serverUtils); }
+    private static final String UNKNOWN_DOMAIN = "unknown_domain";
+
+    protected String jsonAttrKey;
+
+    public DomainAdsTrainer(ServerUtils serverUtils) {
+        super(serverUtils);
+        jsonAttrKey = JsonKeyDef.F_KEY_DOMAIN;
+    }
+
+    /**
+     * Fetches the domain from provided packet
+     * @param packet packet to fetch the domain from
+     * @return domain (TLD + 1)
+     */
+    protected String getAttrFromPacket(JSONObject packet) {
+        return ServerUtils.getStringFromJSONObject(packet, jsonAttrKey);
+    }
 
     @Override
     public Instances populateArff(Info info, TrainingData trainingData, int theta) {
@@ -50,16 +66,21 @@ class DomainAdsTrainer extends Trainer {
         HashSet<String> domains = new HashSet<>(225);
         for (Object k : trainingData.trFlows.keySet()) {
             JSONObject packet = (JSONObject) trainingData.trFlows.get(k);
-            String domain = ServerUtils.getStringFromJSONObject(packet, JsonKeyDef.F_KEY_DOMAIN);
-            domains.add(domain);
+            String domain = getAttrFromPacket(packet);
+            if (domain != null)
+                domains.add(domain);
         }
 
         // Convert to list
         domainsList = new ArrayList<>(domains);
 
+        // Add an unknown domain for cases where the training set does not contain all the domains
+        // of the testing set:
+        domainsList.add(UNKNOWN_DOMAIN);
+
         // Populate Features
         ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-        attributes.add(new Attribute(JsonKeyDef.F_KEY_DOMAIN, domainsList));
+        attributes.add(new Attribute(jsonAttrKey, domainsList));
 
         addClassLabels(attributes);
 
@@ -78,9 +99,14 @@ class DomainAdsTrainer extends Trainer {
 
     private Instance convertObjectToInstance(JSONObject packet, int attrSize) {
         double[] instanceValue = new double[attrSize];
-        String domain = ServerUtils.getStringFromJSONObject(packet, JsonKeyDef.F_KEY_DOMAIN);
+        String domain = getAttrFromPacket(packet);
 
-        instanceValue[0] = domainsList.indexOf(domain);
+        // First feature is the domain - check if it appeared in the training set
+        int domainIdx = domainsList.indexOf(domain);
+        if (domainIdx == -1)
+            domainIdx = domainsList.indexOf(UNKNOWN_DOMAIN);
+
+        instanceValue[0] = domainIdx;
 
         // Last attribute is the label
         int adLabel = ServerUtils.getIntFromJSONObject(packet, jsonKeyLabel);

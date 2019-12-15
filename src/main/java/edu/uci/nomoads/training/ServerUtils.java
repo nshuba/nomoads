@@ -44,8 +44,14 @@ class ServerUtils extends Util {
     /** Directory where prediction results will be saved */
     private final String resultsDir;
 
+    /** Directory where .dot files of trees will be saved for easy visualization by Python later */
+    private final String treeDotDir;
+
     /** Points to an {@code index_dat.json} file, as prepared by our scripts */
     private final String trainingIndex;
+
+    /** JSON key to be used as a label */
+    final String label;
 
     /** A reference to the {@link Config} object to access various settings */
     private final Config config;
@@ -55,23 +61,37 @@ class ServerUtils extends Util {
      */
     private final Map<String, Integer> stopWords = new HashMap<>();
 
+    private static ServerUtils instance;
+
+    static ServerUtils getInstance(Config config) {
+        if (instance == null) {
+            instance = new ServerUtils(config);
+            return instance;
+        }
+        else
+            return instance;
+    }
+
     /**
      * Initializes server-side utility object
      */
-    public ServerUtils(Config config) {
+    private ServerUtils(Config config) {
         super(config.getExperimentsConfig());
 
         this.config = config;
 
         String rootDir = config.getRootConfig();
 
-        trainingDir = rootDir + "tr_data_per_" + config.getClassifierType() + "/";
+        trainingDir = rootDir + "tr_data_per_" + config.getDataSplit() + "/";
         logDir = experimentsDir + "logs/";
         resultsDir = experimentsDir + "results/";
+        treeDotDir = experimentsDir + "tree_dot_files/";
+        label = config.getLabel();
 
         // Create these directories if they don't exist
         createDir(logDir);
         createDir(resultsDir);
+        createDir(treeDotDir);
 
         trainingIndex = trainingDir + "index_dat.json";
 
@@ -92,9 +112,9 @@ class ServerUtils extends Util {
 
     String getResultsDir() { return resultsDir; }
 
-    String getClassifierType() { return config.getClassifierType(); }
+    String getTreeDotDir() { return treeDotDir; }
 
-    int getBinSize() { return config.getBinSize(); }
+    String getDataSplit() { return config.getDataSplit(); }
 
     private class StopWordReader extends ConfigFileReader {
 
@@ -126,10 +146,10 @@ class ServerUtils extends Util {
      * Reads the given file info to see if there are enough positive and negative samples in this
      * file
      * @param info
-     * @param classifierType the type of classifier (per-domain or per-app)
+     * @param dataSplit the type of classifier (per-domain or per-app)
      * @return a {@link Info} object if the file was approved, {@code null} otherwise
      */
-    static Info approveFile(JSONObject info, String classifierType) {
+    static Info approveFile(JSONObject info, String dataSplit) {
         if (info == null) {
             System.out.println("WARNING: no JSON info provided");
             return null;
@@ -137,7 +157,7 @@ class ServerUtils extends Util {
 
 
         Info inf = new Info();
-        inf.domain = ServerUtils.getStringFromJSONObject(info, classifierType);
+        inf.domain = ServerUtils.getStringFromJSONObject(info, dataSplit);
         inf.OS = ServerUtils.getStringFromJSONObject(info, JsonKeyDef.F_KEY_PLATFORM);
         inf.domainOS = inf.domain + "_" + inf.OS;
         inf.initNumPos = ServerUtils.getIntFromJSONObject(info, JsonKeyDef.NUM_POSITIVE);
@@ -146,14 +166,17 @@ class ServerUtils extends Util {
         return inf;
     }
 
-    public static void writeToFile(String fullPath, String line){
-        new File(fullPath).delete();
-        appendLineToFile(fullPath, line);
+    public static void appendLineToFile(String fullPath, String line){
+        writeToFile(fullPath, line, true);
     }
 
-    public static void appendLineToFile(String fullPath, String line){
+    public static void overwriteFile(String fullPath, String line){
+        writeToFile(fullPath, line, false);
+    }
+
+    private static void writeToFile(String fullPath, String line, boolean append){
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(fullPath, true));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(fullPath, append));
             bw.append(line+"\n");
             bw.close();
         } catch (IOException e) {
