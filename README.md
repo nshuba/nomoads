@@ -11,51 +11,12 @@ Below is an outline of this document:
 * [Citing NoMoAds](#citing-nomoads)
 * [Acknowledgements](#acknowledgements)
 
-Below is a table of contents of this document:
-* [Citing NoMoAds](#citing-nomoads)
-* [Quick Start](#quick-start)
-    * [Prerequisites](#prerequisites)
-    * [Download the Sample Dataset](#download-the-sample-dataset)
-    * [Download the NoMoAds Source Code](#download-the-nomoads-source-code)
-    * [Taking NoMoAds for a Test Run](#taking-nomoads-for-a-test-run)
-    * [Extracting Classification Results](#extracting-classification-results)
-* [Detailed Overview](#detailed-overview)
-    * [Configuration Settings](#configuration-settings)
-    * [Java Code](#java-code)
-    * [Python Scripts](#python-scripts)
-    * [Exporting NoMoAds as an Android Library](#exporting-nomoads-as-an-android-library)
-* [Acknowledgements](#acknowledgements)
-
-## Citing NoMoAds
-If you create a publication (including web pages, papers published by a
-third party, and publicly available presentations) using NoMoAds or the 
-NoMoAds dataset, please cite the 
-[corresponding paper](https://www.petsymposium.org/2018/files/papers/issue4/popets-2018-0035.pdf) 
-as follows:
-
-```
-@article{shuba2018nomoads,
-  title={{NoMoAds: Effective and Efficient Cross-App Mobile Ad-Blocking}},
-  author={Shuba, Anastasia and Markopoulou, Athina and Shafiq, Zubair},
-  journal={Proceedings on Privacy Enhancing Technologies},
-  volume={2018},
-  number={4},
-  year={2018},
-  publisher={De Gruyter Open}
-}
-```
-
-We also encourage you to provide us (<nomoads.uci@gmail.com>) with a
-link to your publication. We use this information in reports to our
-funding agencies.
-
 ## Quick Start
 Below you will find instructions to get you started quickly. We also provide a VM
 that has all the prerequisites installed and contains a small subset of our dataset to get you
 started even quicker. If you would like to use the VM, go to the
 [Using the Provided VM](#using-the-provided-vm) section. Otherwise, start at the
 [Prerequisites](#prerequisites) section.
-
 
 ### Using the Provided VM
 <!---
