@@ -19,21 +19,24 @@ started even quicker. If you would like to use the VM, go to the
 [Prerequisites](#prerequisites) section.
 
 ### Using the Provided VM
-<!---
-TODO: add link to VM
--->
-```
-$ cd ~/nomoads
-$ python scripts/data_prep/prepare_training_data.py config.cfg
-$ ./gradlew build
-$ ./gradlew run
-```
-
-The results are ready to view! Skip to the [Viewing Results](#viewing-results) section for
+* Download our Ubuntu 18.04 VMWare image from [here](https://drive.google.com/file/d/1IaDKw66ECPmNSIg4FEnYKw7HpludGFS8/).
+The image has all the prerequisites installed and has a subset of our dataset to get you started in no time.
+    - Note that the image should also work with Virtual Box if you create a new VM within Virtual Box and pick
+    "use existing disk".
+* Power on the image. Password is `nomoats`
+* Open a terminal and follow the steps below:
+  ```
+  $ cd ~/nomoads
+  $ python scripts/data_prep/prepare_training_data.py config.cfg
+  $ ./gradlew build
+  $ ./gradlew run
+  ```
+* The results are ready to view! Skip to the [Viewing Results](#viewing-results) section for
 instructions on how to view them. Note that in the `DATA_ROOT` directory is
-`/home/nomoats/data_root` on the VM.
+`/home/nomoads/data_root` on the VM.
 
 ### Prerequisites
+* **Operating System**: Ubuntu 18.04
 * Python 2.7 and pip
     - `$ sudo apt-get install python`
     - `$ sudo apt-get install python-pip`
@@ -42,6 +45,8 @@ instructions on how to view them. Note that in the `DATA_ROOT` directory is
 * Java 8
     - `$ sudo apt-get install openjdk-8-jre`
     - `$ sudo apt-get install openjdk-8-jdk`
+* xdot (for viewing decision trees, if desired):
+    - `$ sudo apt-get install xdot`
 * **Optional**: IntelliJ or Android Studio
 
 ### Download the Sample Dataset
@@ -77,9 +82,6 @@ following:
   dataRootDir=/home/user_a/DATA_ROOT
   ```
 
-* Note that if you are on Windows, you can specify the path as
-`C:\\Users\\user_a\\DATA_ROOT`
-
 * Now prepare the training data:
   ```
   cd CODE_ROOT/scripts
@@ -110,12 +112,15 @@ kept in `CODE_ROOT/config/`.
     used for visualization
     - treeLabels.json - a JSON represnetation of the trees, used for
     various processing during the training
+    
+* You can view the produced DTs by opening up any of the `.dot` files in 
+`DATA_ROOT/UrlHeadersAdsTrainer/tree_dot_files/`
 
 * Note that all the JSON files are saved in compressed format. For easier viewing,
 you can use the `json_pretty_print.py` script to uncompress a file. For example:
   ```
   $ cd CODE_ROOT/
-  $ python scripts/json_pretty_print.py DATA_ROOT/UrlHeadersAdsTrainer/treeLabels.json
+  $ python scripts/utils/json_pretty_print.py DATA_ROOT/UrlHeadersAdsTrainer/treeLabels.json
   ```
 
 * To evaluate how well the classifiers did, you can use the following script:
