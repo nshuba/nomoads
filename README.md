@@ -1,5 +1,8 @@
 # NoMoAds
-This is a repository for NoMoAds, with NoMoATS extensions.
+This is a repository for NoMoAds, with NoMoATS extensions. To view the original NoMoAds
+repository (without NoMoATS extensions), 
+go to the [nomoads tag](https://github.com/UCI-Networking-Group/nomoads/tree/nomoads).
+
 NoMoAds is a system for predicting whether or not network packets contain
 advertising or tracking requests.
 For details about the two projects, please visit
@@ -50,16 +53,16 @@ instructions on how to view them. Note that in the `DATA_ROOT` directory is
 * **Optional**: IntelliJ or Android Studio
 
 ### Download the Sample Dataset
-* Download the NoMoAds dataset from
-[our website](http://athinagroup.eng.uci.edu/projects/nomoads/data/).
+* Download the NoMoATS dataset from
+[our website](https://athinagroup.eng.uci.edu/projects/nomoads/nomoats-dataset/).
 
 * Unzip the contents and place them in a folder of your choosing.
 Throughout the document we will refer to this folder as `DATA_ROOT`.
 Your folder structure should look as follows:
-```
-DATA_ROOT
-    --> raw_data/
-```
+  ```
+  DATA_ROOT
+      --> raw_data/
+  ```
 
 ### Download the NoMoAds Source Code
 * Download the NoMoAds source code from GitHub. For instance:
