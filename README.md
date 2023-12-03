@@ -22,7 +22,7 @@ started even quicker. If you would like to use the VM, go to the
 [Prerequisites](#prerequisites) section.
 
 ### Using the Provided VM
-* Download our Ubuntu 18.04 VMWare image from [here](https://drive.google.com/file/d/1IaDKw66ECPmNSIg4FEnYKw7HpludGFS8/).
+* Download our Ubuntu 18.04 VMWare image from [here](https://ucirvine.sharepoint.com/:u:/s/athinagroup/ES7LirPWam1PiClUcjvAyK8Bt7KlOA9H25BHj9wsaP34TQ).
 The image has all the prerequisites installed and has a subset of our dataset to get you started in no time.
     - Note that the image should also work with Virtual Box if you create a new VM within Virtual Box and pick
     "use existing disk".
